@@ -1,45 +1,134 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store/useStore';
-import { Droplets } from 'lucide-react';
+
+const LOAD_STEPS = [
+  'Initializing Lawnalyze…',
+  'Loading satellite engine…',
+  'Connecting weather service…',
+  'Preparing analytics…',
+  'Ready!',
+];
 
 export function Splash() {
   const setOnboardingStep = useStore((state) => state.setOnboardingStep);
+  const [progress, setProgress] = useState(0);
+  const [stepIdx, setStepIdx] = useState(0);
+  const [loadingDone, setLoadingDone] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) { clearInterval(interval); return 100; }
+        return prev + 2;
+      });
+    }, 50);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const idx = Math.min(Math.floor((progress / 100) * LOAD_STEPS.length), LOAD_STEPS.length - 1);
+    setStepIdx(idx);
+    if (progress >= 100) {
+      const t = setTimeout(() => setLoadingDone(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, [progress]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-surface-container-low text-on-surface overflow-hidden relative w-full">
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary-container/20 to-surface pointer-events-none" />
-      
-      <motion.div 
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 1, ease: 'easeOut' }}
-        className="z-10 flex flex-col items-center max-w-lg text-center px-6"
-      >
+    <AnimatePresence>
+      {!loadingDone ? (
         <motion.div
-           initial={{ y: -50, opacity: 0 }}
-           animate={{ y: 0, opacity: 1 }}
-           transition={{ delay: 0.5, duration: 0.8 }}
-           className="w-24 h-24 bg-primary-container text-white rounded-full flex items-center justify-center mb-8 shadow-ambient gradient-primary"
+          key="splash"
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0, scale: 1.05 }}
+          transition={{ duration: 0.5 }}
+          className="fixed inset-0 flex flex-col items-center justify-center bg-[#f5f7f0] overflow-hidden z-[999]"
         >
-          <Droplets size={48} className="drop-shadow-md" />
-        </motion.div>
-        
-        <h1 className="text-5xl md:text-7xl font-heading font-extrabold text-primary mb-6 tracking-tighter shadow-sm text-shadow-sm">
-          LAWNALYZE
-        </h1>
-        <p className="text-xl md:text-2xl font-body font-medium text-on-surface-variant leading-relaxed mb-12">
-          Data-driven water conservation and management for a greener future.
-        </p>
+          {/* Animated gradients */}
+          <div className="pointer-events-none fixed top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-green-400/35 via-emerald-300/20 to-transparent blur-3xl animate-drift-slow" />
+          <div className="pointer-events-none fixed bottom-[-15%] left-[-10%] w-[55%] h-[80%] rounded-full bg-gradient-to-tr from-green-500/30 via-emerald-400/15 to-transparent blur-3xl animate-drift-slow-reverse" />
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setOnboardingStep('address')}
-          className="bg-primary text-white font-bold text-lg px-12 py-5 rounded-full shadow-ambient hover:bg-primary/90 transition-colors w-full sm:w-auto"
+          {/* Logo */}
+          <motion.img
+            src="/lawnalyze-logo.png"
+            alt="Lawnalyze"
+            className="w-[340px] md:w-[420px] select-none mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            draggable={false}
+          />
+
+          {/* Progress bar */}
+          <div className="w-64 md:w-80 flex flex-col items-center gap-4">
+            <div className="w-full h-1.5 bg-[#d6dcc8] rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: 'linear-gradient(90deg, #2e7d32, #4caf50, #66bb6a)' }}
+                initial={{ width: '0%' }}
+                animate={{ width: `${progress}%` }}
+                transition={{ ease: 'easeOut', duration: 0.15 }}
+              />
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={stepIdx}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className="text-[13px] font-medium text-[#5a6650] tracking-wide"
+              >
+                {LOAD_STEPS[stepIdx]}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="ready"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="fixed inset-0 flex flex-col items-center justify-center bg-[#f5f7f0] overflow-hidden z-[999]"
         >
-          Get Started
-        </motion.button>
-      </motion.div>
-    </div>
+          {/* Animated gradients */}
+          <div className="pointer-events-none fixed top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-green-400/35 via-emerald-300/20 to-transparent blur-3xl animate-drift-slow" />
+          <div className="pointer-events-none fixed bottom-[-15%] left-[-10%] w-[55%] h-[80%] rounded-full bg-gradient-to-tr from-green-500/30 via-emerald-400/15 to-transparent blur-3xl animate-drift-slow-reverse" />
+
+          <motion.img
+            src="/lawnalyze-logo.png"
+            alt="Lawnalyze"
+            className="w-[340px] md:w-[420px] select-none mb-10"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            draggable={false}
+          />
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-lg md:text-xl font-medium text-[#5a6650] mb-10 text-center px-6"
+          >
+            Data-driven water conservation for a greener future.
+          </motion.p>
+
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => setOnboardingStep('address')}
+            className="bg-[#2e7d32] text-white font-bold text-lg px-14 py-4 rounded-full shadow-lg hover:bg-[#1b5e20] transition-colors"
+          >
+            Get Started
+          </motion.button>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

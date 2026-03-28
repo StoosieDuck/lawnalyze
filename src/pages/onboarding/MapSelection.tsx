@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
-import { MapContainer, TileLayer, useMap, CircleMarker } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap, Marker } from 'react-leaflet';
 import { MapPin, ArrowRight, CheckCircle2, Search } from 'lucide-react';
 import area from '@turf/area';
 import { polygon } from '@turf/helpers';
@@ -61,48 +61,52 @@ function DrawControl({ onCalculateArea }: { onCalculateArea: (area: number) => v
       });
       map.addControl(drawControl);
 
-      const calculateAndSetArea = (layer: any) => {
-        let latlngs: any[] = [];
-        if (layer instanceof L.Polygon) {
-          latlngs = layer.getLatLngs()[0] as any[];
-          // Handle complex multi-polygons or rectangles gracefully
-          if (Array.isArray(latlngs) && Array.isArray(latlngs[0])) latlngs = latlngs[0];
-        } else {
-          return;
-        }
-        
-        try {
-          const coords = latlngs.map((ll: any) => [ll.lng, ll.lat]);
-          coords.push([latlngs[0].lng, latlngs[0].lat]); 
-          const poly = polygon([coords]);
-          const areaSqMeters = area(poly);
-          const areaSqFt = Math.round(areaSqMeters * 10.7639);
-          onCalculateArea(areaSqFt);
-        } catch (err) {
-          console.error("Area calc error", err);
-        }
+      const recalcTotalArea = () => {
+        let totalSqFt = 0;
+        drawnItems.eachLayer((layer: any) => {
+          if (layer instanceof L.Polygon) {
+            let latlngs: any[] = layer.getLatLngs()[0] as any[];
+            if (Array.isArray(latlngs) && Array.isArray(latlngs[0])) latlngs = latlngs[0];
+            try {
+              const coords = latlngs.map((ll: any) => [ll.lng, ll.lat]);
+              coords.push([latlngs[0].lng, latlngs[0].lat]);
+              const poly = polygon([coords]);
+              const areaSqMeters = area(poly);
+              totalSqFt += Math.round(areaSqMeters * 10.7639);
+            } catch {}
+          }
+        });
+        onCalculateArea(totalSqFt);
       };
 
       const handleDrawCreated = (e: any) => {
-        drawnItems.clearLayers(); 
+        // Don't clear — allow multiple polygons!
         drawnItems.addLayer(e.layer);
         
-        // Auto-enable editing so vertices turn into interactive handles!
+        // Auto-enable editing so vertices are interactive
         if (e.layer.editing) {
           e.layer.editing.enable();
         }
 
-        // Calculate initial area
-        calculateAndSetArea(e.layer);
+        // Recalculate total of all polygons
+        recalcTotalArea();
 
-        // Bind live live dragging events on the layer!
+        // Bind live edit events for this layer
         e.layer.on('edit', () => {
-          calculateAndSetArea(e.layer);
+          recalcTotalArea();
         });
       };
 
       handleDrawCreatedRef = handleDrawCreated;
       map.on((L as any).Draw.Event.CREATED, handleDrawCreated);
+
+      // Recalculate when polygons are deleted via the toolbar
+      map.on((L as any).Draw.Event.DELETED, () => {
+        recalcTotalArea();
+      });
+      map.on((L as any).Draw.Event.EDITED, () => {
+        recalcTotalArea();
+      });
 
       const handleKeyDown = (e: KeyboardEvent) => {
         const target = e.target as HTMLElement;
@@ -121,12 +125,13 @@ function DrawControl({ onCalculateArea }: { onCalculateArea: (area: number) => v
           if (deletePointBtn) {
             e.preventDefault();
             deletePointBtn.click();
-          } else {
-            // Delete the entire lawn selection if it exists
+           } else {
+            // Delete the last polygon added
             if (drawnItems && drawnItems.getLayers().length > 0) {
               e.preventDefault();
-              drawnItems.clearLayers();
-              onCalculateArea(0);
+              const layers = drawnItems.getLayers();
+              drawnItems.removeLayer(layers[layers.length - 1]);
+              recalcTotalArea();
             }
           }
         }
@@ -187,6 +192,10 @@ export function MapSelection() {
 
   return (
     <div className="flex flex-col min-h-screen bg-surface-container-low w-full relative font-body overflow-y-auto overflow-x-hidden">
+      {/* Static gradient — top right */}
+      <div className="pointer-events-none fixed top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-green-400/35 via-emerald-300/20 to-transparent blur-3xl animate-drift-slow" />
+      {/* Static gradient — bottom left */}
+      <div className="pointer-events-none fixed bottom-[-15%] left-[-5%] w-[70%] h-[60%] rounded-full bg-gradient-to-tr from-green-500/30 via-emerald-400/15 to-transparent blur-3xl animate-drift-slow-reverse" />
       <style>{`
         /* Make Leaflet tools refined, modern, and high-res */
         .leaflet-draw.leaflet-control {
@@ -325,14 +334,14 @@ export function MapSelection() {
         </div>
       </div>
 
-      <div className="flex-1 w-full flex flex-col items-center pt-8 pb-32 px-4 md:px-6 relative z-10 max-w-5xl mx-auto">
+      <div className="flex-1 w-full flex flex-col items-center pt-8 pb-32 px-4 md:px-6 relative z-10 max-w-7xl mx-auto">
         
         {/* Search Bar - Center above Map */}
         <div className="w-full max-w-3xl mb-6">
           <h3 className="text-2xl font-bold font-heading mb-4 text-center text-on-surface">Map out your lawn</h3>
           <p className="text-center text-on-surface-variant mb-6 text-sm md:text-base">
-            Use the square or polygon drawing tools on the left to highlight the grass you want to analyze. <br/>
-            <span className="text-primary font-bold">Tip:</span> To finish drawing a custom shape, simply click on the first starting dot you placed, or click the "Finish" button that pops out!
+            Use the polygon drawing tool on the left to outline each lawn section. <strong>Draw multiple polygons</strong> for separate lawn areas — they'll be summed automatically. <br/>
+            <span className="text-primary font-bold">Tip:</span> Click the first dot to close a shape, then draw another. Press <kbd className="px-1.5 py-0.5 bg-surface-container rounded text-xs font-mono">Delete</kbd> to remove the last polygon.
           </p>
           
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-center bg-surface rounded-2xl shadow-sm border border-surface-variant overflow-hidden p-2 gap-2">
@@ -355,7 +364,7 @@ export function MapSelection() {
         </div>
 
         {/* Map Area - Square Box */}
-        <div className="w-full max-w-[800px] aspect-square md:aspect-[4/3] rounded-[32px] overflow-hidden border-[12px] border-surface shadow-2xl relative bg-surface-variant isolate">
+        <div className="w-full max-w-[1240px] aspect-[16/9] rounded-[32px] overflow-hidden border-[12px] border-surface shadow-2xl relative bg-surface-variant isolate">
           <MapContainer 
             center={location?.coords || [34.0522, -118.2437]} 
             zoom={20}
@@ -373,10 +382,17 @@ export function MapSelection() {
               maxZoom={22}
             />
             <DrawControl onCalculateArea={setCalculatedArea} />
-            <CircleMarker 
-              center={markerPos || location?.coords || [34.0522, -118.2437]} 
-              radius={8} 
-              pathOptions={{ fillColor: '#0b5cff', color: 'white', weight: 4, fillOpacity: 1 }}
+            <Marker 
+              position={markerPos || location?.coords || [34.0522, -118.2437]}
+              icon={L.divIcon({
+                className: '',
+                html: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42" fill="none">
+                  <path d="M16 0C7.163 0 0 7.163 0 16c0 10.512 14.208 24.576 15.104 25.472a1.28 1.28 0 001.792 0C17.792 40.576 32 26.512 32 16 32 7.163 24.837 0 16 0z" fill="#4285F4"/>
+                  <circle cx="16" cy="16" r="6" fill="white"/>
+                </svg>`,
+                iconSize: [32, 42],
+                iconAnchor: [16, 42],
+              })}
             />
           </MapContainer>
         </div>

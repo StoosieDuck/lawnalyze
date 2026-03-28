@@ -26,6 +26,26 @@
     box-shadow: 0px 12px 32px rgba(26, 28, 26, 0.06);
   }
 }
+
+/* Slow drifting gradient animations */
+@keyframes drift-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.02); }
+  50% { transform: translate(-15px, 25px) scale(0.98); }
+  75% { transform: translate(20px, 15px) scale(1.01); }
+}
+@keyframes drift-slow-reverse {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-25px, 15px) scale(1.01); }
+  50% { transform: translate(20px, -20px) scale(1.03); }
+  75% { transform: translate(-15px, -10px) scale(0.99); }
+}
+.animate-drift-slow {
+  animation: drift-slow 20s ease-in-out infinite;
+}
+.animate-drift-slow-reverse {
+  animation: drift-slow-reverse 25s ease-in-out infinite;
+}
 @layer base {
   .theme {
     --font-heading: var(--font-sans);

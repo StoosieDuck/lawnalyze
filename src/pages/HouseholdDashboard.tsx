@@ -12,7 +12,7 @@ export function HouseholdDashboard() {
   const yearlyWaterEstimate = weeklyWaterEstimate * 52;
 
   return (
-    <div className="max-w-4xl mx-auto w-full pb-12 pt-8 px-4">
+    <div className="max-w-6xl mx-auto w-full pb-12 pt-8 px-4">
       <header className="mb-10 text-center">
         <h1 className="text-4xl lg:text-5xl font-heading font-extrabold text-on-surface tracking-tight mb-4">Lawn Analysis Complete</h1>
         <p className="text-on-surface-variant font-medium text-lg">We successfully processed your property boundaries.</p>

@@ -21,8 +21,8 @@ export function AppLayout() {
     <div className="flex min-h-screen bg-surface w-full">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-72 flex-col glass-nav border-r-0 shadow-ambient z-10 sticky top-0 h-screen">
-        <div className="p-8">
-          <h1 className="text-2xl font-heading font-extrabold text-primary tracking-tight">LAWNALYZE</h1>
+        <div className="p-6">
+          <img src="/lawnalyze-logo.png" alt="Lawnalyze" className="h-14 select-none" draggable={false} />
         </div>
         <nav className="flex-1 px-4 space-y-2 mt-4">
           {navItems.map((item) => {
@@ -56,7 +56,7 @@ export function AppLayout() {
 
       {/* Mobile Topbar & Hamburger */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 glass-nav z-50 flex items-center justify-between px-4 shadow-sm">
-        <h1 className="text-xl font-heading font-bold text-primary">LAWNALYZE</h1>
+        <img src="/lawnalyze-logo.png" alt="Lawnalyze" className="h-9 select-none" draggable={false} />
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-on-surface">
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>

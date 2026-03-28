@@ -94,8 +94,8 @@ export function Schedule() {
   const bestDay = forecast[bestDayIdx];
 
   return (
-    <div className="max-w-7xl mx-auto w-full pb-12 animated-enter">
-      <header className="mb-10 pl-2 lg:pl-0">
+    <div className="max-w-6xl mx-auto w-full pb-12 animated-enter">
+      <header className="mb-10 text-center">
         <h1 className="text-4xl lg:text-5xl font-heading font-extrabold text-on-surface tracking-tight">Watering Schedule</h1>
         <p className="text-on-surface-variant font-medium mt-2 text-lg">
           Live 7-day forecast for <strong>{cityLabel}</strong> · water <strong>once per week</strong> on the optimal day.
@@ -103,7 +103,7 @@ export function Schedule() {
       </header>
 
       {/* ── Week Strip ── */}
-      <div className="flex gap-3 overflow-x-auto pb-4 mb-8 snap-x scrollbar-hide">
+      <div className="flex gap-3 justify-center flex-wrap pb-4 mb-8">
         {forecast.map((day, idx) => {
           const isBest = idx === bestDayIdx;
           const isSelected = idx === selectedDay;
@@ -112,7 +112,7 @@ export function Schedule() {
             <button
               key={idx}
               onClick={() => setSelectedDay(idx)}
-              className={`snap-center flex-shrink-0 w-[120px] rounded-3xl flex flex-col items-center justify-center py-5 px-3 transition-all border-2 ${
+              className={`flex-shrink-0 w-[110px] rounded-3xl flex flex-col items-center justify-center py-4 px-2 transition-all border-2 ${
                 isSelected
                   ? isBest
                     ? 'bg-primary text-white shadow-lg scale-105 border-primary'
@@ -163,8 +163,8 @@ export function Schedule() {
                       <div className="flex items-center gap-4 mt-1 text-on-surface-variant font-medium text-[15px]">
                         <span className="flex items-center gap-1"><Thermometer size={14} /> {sel.tempHigh}°F / {sel.tempLow}°F</span>
                         <span className="flex items-center gap-1"><CloudRain size={14} /> {sel.rainChance}% rain</span>
-                        {sel.precipMm > 0 && (
-                          <span className="flex items-center gap-1"><Droplet size={14} /> {sel.precipMm.toFixed(1)} mm</span>
+                        {sel.precipIn > 0 && (
+                          <span className="flex items-center gap-1"><Droplet size={14} /> {sel.precipIn}"</span>
                         )}
                       </div>
                     </div>
@@ -240,11 +240,13 @@ export function Schedule() {
               <div className="space-y-4">
                 <div className="bg-surface rounded-2xl p-4 border border-surface-variant/40">
                   <h4 className="font-bold text-error text-sm uppercase tracking-wide mb-1">Night Fungal Risk</h4>
-                  <p className="text-sm font-medium">Leaving grass blades wet overnight significantly accelerates fungal growth and lawn diseases.</p>
+                  <p className="text-sm font-medium">Leaving grass blades wet overnight significantly accelerates fungal growth and lawn diseases like Dollar Spot and Brown Patch.</p>
+                  <a href="https://extension.psu.edu/watering-lawns" target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold text-primary/60 hover:text-primary underline mt-1 inline-block">Penn State Extension →</a>
                 </div>
                 <div className="bg-surface rounded-2xl p-4 border border-surface-variant/40">
                   <h4 className="font-bold text-orange-500 text-sm uppercase tracking-wide mb-1">Mid-day Evaporation</h4>
                   <p className="text-sm font-medium">Irrigating at noon loses up to 30% of total volume instantly to the sun.</p>
+                  <a href="https://hgic.clemson.edu/factsheet/watering-lawns/" target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold text-primary/60 hover:text-primary underline mt-1 inline-block">Clemson HGIC →</a>
                 </div>
               </div>
             </CardContent>
