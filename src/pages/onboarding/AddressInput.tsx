@@ -42,9 +42,9 @@ export function AddressInput() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-surface px-6 relative overflow-hidden w-full">
       {/* Static gradient — top right */}
-      <div className="pointer-events-none fixed top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-green-400/35 via-emerald-300/20 to-transparent blur-3xl animate-drift-slow" />
+      <div className="pointer-events-none fixed top-[-20%] right-[-10%] w-[60%] h-[80%] rounded-full bg-gradient-to-br from-green-400/35 via-emerald-300/20 to-transparent blur-3xl animate-drift-slow" />
       {/* Static gradient — bottom left */}
-      <div className="pointer-events-none fixed bottom-[-15%] left-[-5%] w-[45%] h-[30%] rounded-full bg-gradient-to-tr from-green-500/30 via-emerald-400/15 to-transparent blur-3xl animate-drift-slow-reverse" />
+      <div className="pointer-events-none fixed bottom-[-15%] left-[-10%] w-[55%] h-[80%] rounded-full bg-gradient-to-tr from-green-500/30 via-emerald-400/15 to-transparent blur-3xl animate-drift-slow-reverse" />
 
       <motion.div
         initial={{ x: 50, opacity: 0 }}

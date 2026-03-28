@@ -62,7 +62,7 @@ export function TurfInsights() {
               {Array.from({ length: bathtubCount }).map((_, i) => (
                 <div
                   key={i}
-                  className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-lg"
+                  className="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-lg filter grayscale opacity-80"
                   title={`Bathtub ${i + 1}`}
                 >
                   🛁

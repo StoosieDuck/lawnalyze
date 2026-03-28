@@ -193,9 +193,9 @@ export function MapSelection() {
   return (
     <div className="flex flex-col min-h-screen bg-surface-container-low w-full relative font-body overflow-y-auto overflow-x-hidden">
       {/* Static gradient — top right */}
-      <div className="pointer-events-none fixed top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-green-400/35 via-emerald-300/20 to-transparent blur-3xl animate-drift-slow" />
+      <div className="pointer-events-none fixed top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-green-400/35 via-emerald-300/20 to-transparent blur-3xl animate-drift-slow z-0" />
       {/* Static gradient — bottom left */}
-      <div className="pointer-events-none fixed bottom-[-15%] left-[-5%] w-[70%] h-[60%] rounded-full bg-gradient-to-tr from-green-500/30 via-emerald-400/15 to-transparent blur-3xl animate-drift-slow-reverse" />
+      <div className="pointer-events-none fixed bottom-[-15%] left-[-10%] w-[55%] h-[80%] rounded-full bg-gradient-to-tr from-green-500/30 via-emerald-400/15 to-transparent blur-3xl animate-drift-slow-reverse z-0" />
       <style>{`
         /* Make Leaflet tools refined, modern, and high-res */
         .leaflet-draw.leaflet-control {
@@ -363,8 +363,8 @@ export function MapSelection() {
           </form>
         </div>
 
-        {/* Map Area - Square Box */}
-        <div className="w-full max-w-[1240px] aspect-[16/9] rounded-[32px] overflow-hidden border-[12px] border-surface shadow-2xl relative bg-surface-variant isolate">
+        {/* Map Area - Cinematic Widescreen (Taller) */}
+        <div className="w-full max-w-[1400px] aspect-[16/10] rounded-[48px] overflow-hidden border-[12px] border-surface shadow-2xl relative bg-surface-variant isolate">
           <MapContainer 
             center={location?.coords || [34.0522, -118.2437]} 
             zoom={20}
