@@ -9,15 +9,15 @@ const BATHTUB_GALLONS = 36;
 
 // National Average Water Rates (cost per gallon)
 const WATER_RATES: Record<string, number> = {
-  'CA': 0.012, // Expensive tier
-  'NV': 0.008,
-  'AZ': 0.006,
-  'TX': 0.006,
-  'UT': 0.005,
-  'FL': 0.005,
-  'CO': 0.007,
-  'WA': 0.008,
-  'NY': 0.010,
+  'CA': 0.012, 'CALIFORNIA': 0.012,
+  'NV': 0.008, 'NEVADA': 0.008,
+  'AZ': 0.006, 'ARIZONA': 0.006,
+  'TX': 0.006, 'TEXAS': 0.006,
+  'UT': 0.005, 'UTAH': 0.005,
+  'FL': 0.005, 'FLORIDA': 0.005,
+  'CO': 0.007, 'COLORADO': 0.007,
+  'WA': 0.008, 'WASHINGTON': 0.008,
+  'NY': 0.010, 'NEW YORK': 0.010,
 };
 const DEFAULT_RATE = 0.006; // National avg
 
@@ -43,8 +43,9 @@ export function TurfInsights() {
   const bathtubCount = Math.min(Math.ceil(bathtubsPerWeek), 20);
 
   // Calculate Costs
-  const stateKey = location?.state?.substring(0, 2).toUpperCase() || '';
-  const ratePerGal = WATER_RATES[stateKey] || DEFAULT_RATE;
+  const stateRaw = location?.state?.toUpperCase() || '';
+  const mappedStateKey = Object.keys(WATER_RATES).find(k => stateRaw.includes(k)) || '';
+  const ratePerGal = WATER_RATES[mappedStateKey] || DEFAULT_RATE;
   const weeklyCost = estimatedGallonsPerWeek * ratePerGal;
   const annualCost = estimatedGallonsPerYear * ratePerGal;
 

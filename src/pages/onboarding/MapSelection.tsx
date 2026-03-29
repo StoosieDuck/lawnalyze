@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useStore } from '../../store/useStore';
 import { MapContainer, TileLayer, useMap, Marker } from 'react-leaflet';
 import { MapPin, ArrowRight, CheckCircle2, Search } from 'lucide-react';
@@ -30,7 +30,7 @@ function MapController({ markerPos }: { markerPos: [number, number] | null }) {
 }
 
 // Custom Draw Hook to bypass Vite Rollup issues with obsolete react-leaflet-draw
-function DrawControl({ onCalculateArea }: { onCalculateArea: (area: number) => void }) {
+function DrawControl({ onCalculateArea }: { onCalculateArea: (area: number, geojson?: any) => void }) {
   const map = useMap();
 
   useEffect(() => {
@@ -76,7 +76,7 @@ function DrawControl({ onCalculateArea }: { onCalculateArea: (area: number) => v
             } catch {}
           }
         });
-        onCalculateArea(totalSqFt);
+        onCalculateArea(totalSqFt, drawnItems.toGeoJSON());
       };
 
       const handleDrawCreated = (e: any) => {
@@ -155,16 +155,23 @@ function DrawControl({ onCalculateArea }: { onCalculateArea: (area: number) => v
 }
 
 export function MapSelection() {
-  const { location, setLawnAreaSqFt, setOnboardingStep } = useStore();
+  const { location, setLocation, setLawnAreaSqFt, setOnboardingStep, setBoundaryGeoJSON } = useStore();
   const [calculatedArea, setCalculatedArea] = useState<number>(0);
+  const [calculatedGeoJSON, setCalculatedGeoJSON] = useState<any>(null);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [markerPos, setMarkerPos] = useState<[number, number] | null>(null);
 
+  const handleCalculateArea = useCallback((area: number, geojson?: any) => {
+    setCalculatedArea(area);
+    setCalculatedGeoJSON(geojson);
+  }, []);
+
   const handleFinish = () => {
     if (calculatedArea > 0) {
       setLawnAreaSqFt(calculatedArea);
+      if (calculatedGeoJSON) setBoundaryGeoJSON(calculatedGeoJSON);
       setOnboardingStep('dashboard'); // Transition to main app
     }
   };
@@ -176,10 +183,25 @@ export function MapSelection() {
     setIsSearching(true);
     try {
       const query = encodeURIComponent(searchQuery);
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${query}&limit=1`);
       const data = await res.json();
       if (data && data.length > 0) {
-        setMarkerPos([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+        const result = data[0];
+        const latNum = parseFloat(result.lat);
+        const lonNum = parseFloat(result.lon);
+        setMarkerPos([latNum, lonNum]);
+        
+        // Ensure global state updates so weather/utility functions use the new Florida location
+        const addrObj = result.address || {};
+        const road = addrObj.house_number ? `${addrObj.house_number} ${addrObj.road || ''}` : (addrObj.road || searchQuery);
+        const city = addrObj.city || addrObj.town || addrObj.village || addrObj.county || 'Scanned Area';
+        
+        // For OpenStreetMap US states, state is usually full name, but our db uses abbr. Let's just put the state directly, 
+        // Our water rate DB supports full state names and abbreviations, but mostly US full names.
+        const state = addrObj.state || 'Unknown';
+        
+        setLocation(road, city, state, [latNum, lonNum]);
+        setCalculatedGeoJSON(null); // Wipe unsaved polygon because they just flew across the country
       } else {
         alert("Address not found. Please try another query.");
       }
@@ -381,7 +403,7 @@ export function MapSelection() {
               maxNativeZoom={21}
               maxZoom={22}
             />
-            <DrawControl onCalculateArea={setCalculatedArea} />
+            <DrawControl onCalculateArea={handleCalculateArea} />
             <Marker 
               position={markerPos || location?.coords || [34.0522, -118.2437]}
               icon={L.divIcon({

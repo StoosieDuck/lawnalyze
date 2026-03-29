@@ -1,9 +1,12 @@
 import { motion } from 'framer-motion';
 import { useStore } from '../store/useStore';
-import { MapPin, Maximize2, Edit3, Building2 } from 'lucide-react';
+import { MapPin, Edit3, Building2 } from 'lucide-react';
+
+import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 export function PropertySetup() {
-  const { location, lawnAreaSqFt, setOnboardingStep } = useStore();
+  const { location, lawnAreaSqFt, boundaryGeoJSON, setOnboardingStep } = useStore();
 
   const handleEditAddress = () => {
     setOnboardingStep('address');
@@ -110,44 +113,49 @@ export function PropertySetup() {
             <div className="bg-surface-container rounded-[2rem] p-4 shadow-sm border border-surface-variant/20">
               <div className="flex items-center justify-between mb-4 px-2 pt-2">
                  <h3 className="font-bold flex items-center gap-2">
-                  <Maximize2 className="text-primary" size={16} />
-                  Boundary Map
+                  <MapPin className="text-primary" size={16} />
+                  Location
                 </h3>
               </div>
               <div className="aspect-[4/3] bg-surface-container-high rounded-2xl overflow-hidden relative group">
-                {/* Dynamically slice a satellite tile over their coords */}
-                <img 
-                  src={(() => {
-                    const lat = location?.coords?.[0] || 37.3861;
-                    const lon = location?.coords?.[1] || -122.0839;
-                    const zoom = 19;
-                    const x = Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
-                    const y = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
-                    return `https://mt1.google.com/vt/lyrs=y&x=${x}&y=${y}&z=${zoom}`;
-                  })()}
-                  alt="Satellite View" 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  draggable={false}
-                />
-                
-                {/* Accurate Central Location Ping (simpler, no fake polygons) */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                   <div className="w-16 h-16 rounded-full border-2 border-primary/60 bg-primary/20 animate-pulse flex items-center justify-center backdrop-blur-[1px]">
-                     <div className="w-2 h-2 rounded-full bg-primary" />
-                   </div>
+                <div className="w-full h-full transition-transform duration-700 group-hover:scale-105 pointer-events-none">
+                  <MapContainer
+                    center={location?.coords || [37.3861, -122.0839]}
+                    zoom={20}
+                    zoomControl={false}
+                    dragging={false}
+                    touchZoom={false}
+                    scrollWheelZoom={false}
+                    doubleClickZoom={false}
+                    style={{ height: '100%', width: '100%', zIndex: 0 }}
+                  >
+                    <TileLayer
+                      url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                      maxNativeZoom={21} maxZoom={22}
+                    />
+                    {boundaryGeoJSON && (
+                      <GeoJSON 
+                        data={boundaryGeoJSON}
+                        style={{ color: '#0b5cff', weight: 4, fillColor: '#0b5cff', fillOpacity: 0.2 }}
+                      />
+                    )}
+                  </MapContainer>
                 </div>
 
+                {!boundaryGeoJSON && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                    <div className="w-16 h-16 rounded-full border-2 border-primary/60 bg-primary/20 animate-pulse flex items-center justify-center backdrop-blur-[1px]">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                  </div>
+                )}
+
                 <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm z-20">
-                  <button onClick={handleEditLawn} className="bg-white text-primary px-4 py-2 font-bold rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all">
+                  <button onClick={handleEditLawn} className="bg-white text-primary px-4 py-2 font-bold rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all pointer-events-auto">
                     Adjust Area
                   </button>
                 </div>
-                {/* UI Overlay */}
-                <div className="absolute top-4 left-4 right-4 flex justify-between">
-                  <div className="bg-white/90 backdrop-blur text-primary text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
-                    {lawnAreaSqFt.toLocaleString()} sq ft
-                  </div>
-                </div>
+
               </div>
             </div>
           </div>
