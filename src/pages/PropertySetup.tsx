@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useStore } from '../store/useStore';
-import { MapPin, Maximize2, Edit3, Building2, Droplets } from 'lucide-react';
+import { MapPin, Maximize2, Edit3, Building2 } from 'lucide-react';
 
 export function PropertySetup() {
   const { location, lawnAreaSqFt, setOnboardingStep } = useStore();
@@ -86,18 +86,7 @@ export function PropertySetup() {
                   </div>
                 </div>
 
-                {/* Quick Info */}
-                <div className="mt-8 pt-8 border-t border-surface-variant/10 flex flex-wrap gap-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
-                      <Droplets size={20} />
-                    </div>
-                    <div>
-                      <p className="text-xs text-on-surface-variant/60 font-bold uppercase tracking-widest">Est. Weekly Need</p>
-                      <p className="font-bold">~{Math.round(lawnAreaSqFt * 0.623).toLocaleString()} gallons</p>
-                    </div>
-                  </div>
-                </div>
+                {/* Quick Info (Removed Est. Weekly Need per request) */}
               </div>
             </motion.div>
 
@@ -118,20 +107,45 @@ export function PropertySetup() {
 
           {/* Sidebar Info/Tips */}
           <div className="flex flex-col gap-6">
-            <div className="bg-surface-container rounded-[2rem] p-8 shadow-sm border border-surface-variant/20">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Maximize2 className="text-primary" size={20} />
-                Map Integration
-              </h3>
-              <p className="text-on-surface-variant text-sm leading-relaxed mb-6">
-                Your lawn data is synced with real-time satellite imagery to provide accurate moisture evaporation forecasts.
-              </p>
-              <div className="aspect-[4/3] bg-surface-container-high rounded-2xl overflow-hidden relative">
-                {/* Simulated map preview placeholder */}
-                <div className="absolute inset-0 bg-[url('https://mt1.google.com/vt/lyrs=y&x=0&y=0&z=0')] bg-cover opacity-20" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-surface/80 backdrop-blur-md px-4 py-2 rounded-full border border-surface-variant/20 shadow-xl">
-                    <p className="text-xs font-bold text-primary">Live Scan Active</p>
+            <div className="bg-surface-container rounded-[2rem] p-4 shadow-sm border border-surface-variant/20">
+              <div className="flex items-center justify-between mb-4 px-2 pt-2">
+                 <h3 className="font-bold flex items-center gap-2">
+                  <Maximize2 className="text-primary" size={16} />
+                  Boundary Map
+                </h3>
+              </div>
+              <div className="aspect-[4/3] bg-surface-container-high rounded-2xl overflow-hidden relative group">
+                {/* Dynamically slice a satellite tile over their coords */}
+                <img 
+                  src={(() => {
+                    const lat = location?.coords?.[0] || 37.3861;
+                    const lon = location?.coords?.[1] || -122.0839;
+                    const zoom = 19;
+                    const x = Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
+                    const y = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
+                    return `https://mt1.google.com/vt/lyrs=y&x=${x}&y=${y}&z=${zoom}`;
+                  })()}
+                  alt="Satellite View" 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  draggable={false}
+                />
+                
+                {/* Accurate Central Location Ping (simpler, no fake polygons) */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                   <div className="w-16 h-16 rounded-full border-2 border-primary/60 bg-primary/20 animate-pulse flex items-center justify-center backdrop-blur-[1px]">
+                     <div className="w-2 h-2 rounded-full bg-primary" />
+                   </div>
+                </div>
+
+                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm z-20">
+                  <button onClick={handleEditLawn} className="bg-white text-primary px-4 py-2 font-bold rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all">
+                    Adjust Area
+                  </button>
+                </div>
+                {/* UI Overlay */}
+                <div className="absolute top-4 left-4 right-4 flex justify-between">
+                  <div className="bg-white/90 backdrop-blur text-primary text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
+                    {lawnAreaSqFt.toLocaleString()} sq ft
                   </div>
                 </div>
               </div>

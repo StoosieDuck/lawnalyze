@@ -30,38 +30,7 @@ export interface DayForecast {
   condition: string;
 }
 
-/**
- * Map WMO weather codes to human-readable conditions.
- * https://open-meteo.com/en/docs → "WMO Weather interpretation codes"
- */
-function wmoToCondition(code: number): string {
-  if (code === 0) return 'Clear';
-  if (code === 1) return 'Mainly Clear';
-  if (code === 2) return 'Partly Cloudy';
-  if (code === 3) return 'Overcast';
-  if (code <= 48) return 'Foggy';
-  if (code <= 55) return 'Drizzle';
-  if (code <= 57) return 'Freezing Drizzle';
-  if (code <= 65) return 'Rain';
-  if (code <= 67) return 'Freezing Rain';
-  if (code <= 75) return 'Snowfall';
-  if (code === 77) return 'Snow Grains';
-  if (code <= 82) return 'Rain Showers';
-  if (code <= 86) return 'Snow Showers';
-  if (code === 95) return 'Thunderstorm';
-  if (code >= 96) return 'Thunderstorm w/ Hail';
-  return 'Cloudy';
-}
 
-/**
- * Fetch a 7-day forecast from Open-Meteo for the given coordinates.
- * Falls back to Mountain View, CA if no coords provided.
- *
- * Key choices for accuracy matching Google Weather:
- *  - `models=gfs_seamless` — GFS is the same base model Google uses
- *  - `precipitation_unit=inch` — display-friendly for US
- *  - `timezone=auto` — server picks the right zone for the coords
- */
 export async function fetchWeekForecast(
   lat?: number,
   lon?: number
@@ -69,50 +38,66 @@ export async function fetchWeekForecast(
   const useLat = lat ?? 37.3861;
   const useLon = lon ?? -122.0839;
 
-  const params = new URLSearchParams({
-    latitude: String(useLat),
-    longitude: String(useLon),
-    daily: [
-      'temperature_2m_max',
-      'temperature_2m_min',
-      'precipitation_sum',
-      'precipitation_probability_max',
-      'weather_code',
-    ].join(','),
-    temperature_unit: 'fahrenheit',
-    precipitation_unit: 'inch',
-    timezone: 'auto',
-    forecast_days: '7',
-    models: 'gfs_seamless',
+  // 1) Get local gridpoint from NWS API for these coordinates
+  const pRes = await fetch(`https://api.weather.gov/points/${useLat},${useLon}`, {
+     headers: { 'User-Agent': 'Lawnalyze (contact@lawnalyze.app)' }
   });
+  if (!pRes.ok) throw new Error(`NWS Check HTTP ${pRes.status}`);
+  const pData = await pRes.json();
+  const forecastUrl = pData.properties.forecast;
 
-  const url = `https://api.open-meteo.com/v1/forecast?${params}`;
-
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Open-Meteo HTTP ${res.status}`);
-
-  const data = await res.json();
-  const d = data.daily;
-
+  // 2) Get full 7-day text/temperature forecast
+  const fRes = await fetch(forecastUrl, {
+     headers: { 'User-Agent': 'Lawnalyze (contact@lawnalyze.app)' }
+  });
+  if (!fRes.ok) throw new Error(`NWS Forecast HTTP ${fRes.status}`);
+  const fData = await fRes.json();
+  
   const forecasts: DayForecast[] = [];
-  for (let i = 0; i < d.time.length; i++) {
-    // Parse the date in the API's own timezone to avoid day-shift bugs.
-    // d.time[i] is "YYYY-MM-DD". We extract parts directly.
-    const [y, m, day] = d.time[i].split('-').map(Number);
-    const dateObj = new Date(y, m - 1, day); // local Date
+  const periods = fData.properties.periods;
+
+  // We need to pair Day and Night periods to get High/Low and total precip chances.
+  for (let i = 0; i < periods.length; i += 2) {
+    const dayPeriod = periods[i];
+    // If we start the array at night (isDaytime is false), skip it so we align properly.
+    if (!dayPeriod.isDaytime && i === 0) {
+      i -= 1; // Slide indices so the loop parses Day as the first element.
+      continue;
+    }
+    
+    const nightPeriod = periods[i + 1] || dayPeriod; // Fallback if no night
+
+    // Date parsing
+    const dateObj = new Date(dayPeriod.startTime);
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    // Sometimes NWS puts 'Chance of Rain 50%' in Detailed Forecast.
+    const mergedForecast = (dayPeriod.detailedForecast + ' ' + nightPeriod.detailedForecast).toLowerCase();
+    
+    // Build weather code
+    let weatherCode = 0; // default mostly clear
+    if (mergedForecast.includes('thunder')) weatherCode = 95;
+    else if (mergedForecast.includes('snow')) weatherCode = 71;
+    else if (mergedForecast.includes('rain') || mergedForecast.includes('showers')) weatherCode = 61;
+    else if (mergedForecast.includes('cloudy')) weatherCode = 3;
 
     forecasts.push({
       day: dayNames[dateObj.getDay()],
-      date: day,
-      dateISO: d.time[i],
-      tempHigh: Math.round(d.temperature_2m_max[i]),
-      tempLow: Math.round(d.temperature_2m_min[i]),
-      rainChance: Math.round(d.precipitation_probability_max[i] ?? 0),
-      precipIn: +(d.precipitation_sum[i] ?? 0).toFixed(2),
-      weatherCode: d.weather_code[i],
-      condition: wmoToCondition(d.weather_code[i]),
+      date: dateObj.getDate(),
+      dateISO: dayPeriod.startTime.split('T')[0],
+      tempHigh: dayPeriod.temperature,
+      tempLow: nightPeriod.temperature,
+      rainChance: Math.max(
+        dayPeriod.probabilityOfPrecipitation?.value || 0,
+        nightPeriod.probabilityOfPrecipitation?.value || 0
+      ),
+      // Basic heuristic for typical US rain events since basic forecast endpoint omits exact accumulation
+      precipIn: mergedForecast.includes('heavy rain') ? 0.35 : (mergedForecast.includes('rain') ? 0.05 : 0),
+      weatherCode,
+      condition: dayPeriod.shortForecast || 'Clear',
     });
+    
+    if (forecasts.length >= 7) break;
   }
 
   return forecasts;

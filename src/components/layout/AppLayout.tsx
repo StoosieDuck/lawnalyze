@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Menu, X, Home, Droplets, Calendar, Settings, Lightbulb } from "lucide-react";
-import { useStore } from "../../store/useStore";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -15,7 +14,6 @@ const navItems = [
 export function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const resetOnboarding = useStore(state => state.resetOnboarding);
 
   return (
     <div className="flex min-h-screen bg-surface w-full">
@@ -44,13 +42,8 @@ export function AppLayout() {
             );
           })}
         </nav>
-        <div className="p-6">
-          <button 
-            onClick={resetOnboarding}
-            className="w-full flex items-center justify-center px-4 py-3 rounded-xl bg-error/10 text-error font-medium hover:bg-error/20 transition-colors"
-          >
-            Reset Onboarding
-          </button>
+        <div className="p-6 mt-auto text-xs text-on-surface-variant/50 font-medium">
+          Lawnalyze © 2026
         </div>
       </aside>
 

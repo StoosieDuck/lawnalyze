@@ -171,7 +171,7 @@ export function Schedule() {
                   </div>
                   {isWateringDay ? (
                     <Badge className="bg-primary text-white font-bold px-4 py-2 rounded-xl text-sm hidden md:flex items-center gap-2 shadow-sm border-0">
-                      <Droplet size={16} strokeWidth={2.5} /> WATER TODAY
+                      <Droplet size={16} strokeWidth={2.5} /> BEST DAY TO WATER
                     </Badge>
                   ) : (
                     <Badge className="bg-surface-container text-on-surface-variant font-bold px-4 py-2 rounded-xl text-sm hidden md:flex items-center gap-2 border-0">
@@ -213,7 +213,7 @@ export function Schedule() {
                       </div>
                       {isOptimal && (
                         <Badge className="bg-primary text-white font-bold px-3 py-1.5 rounded-xl text-xs hidden md:flex items-center gap-2 shadow-sm border-0 tracking-wide">
-                          <Droplet size={14} strokeWidth={2.5} /> ACTIVE
+                          <Droplet size={14} strokeWidth={2.5} /> BEST TIME PERIOD
                         </Badge>
                       )}
                     </CardContent>
@@ -235,12 +235,12 @@ export function Schedule() {
                 <h3 className="text-2xl font-bold text-on-surface font-heading">Why Dawn?</h3>
               </div>
               <p className="leading-relaxed mb-6 font-medium text-[17px]">
-                Watering between <strong>5:00 AM and 8:00 AM</strong> guarantees your lawn absorbs crucial moisture before the heat of the day triggers aggressive evaporation.
+                Watering between <strong>5:00 AM and 8:00 AM</strong> makes sure that your lawn gets all the water it needs before the days heat makes water evaporate.
               </p>
               <div className="space-y-4">
                 <div className="bg-surface rounded-2xl p-4 border border-surface-variant/40">
                   <h4 className="font-bold text-error text-sm uppercase tracking-wide mb-1">Night Fungal Risk</h4>
-                  <p className="text-sm font-medium">Leaving grass blades wet overnight significantly accelerates fungal growth and lawn diseases like Dollar Spot and Brown Patch.</p>
+                  <p className="text-sm font-medium">Leaving grass blades wet overnight significantly increases fungal growth and lawn diseases like Dollar Spot and Brown Patch.</p>
                   <a href="https://extension.psu.edu/watering-lawns" target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold text-primary/60 hover:text-primary underline mt-1 inline-block">Penn State Extension →</a>
                 </div>
                 <div className="bg-surface rounded-2xl p-4 border border-surface-variant/40">
