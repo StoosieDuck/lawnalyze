@@ -1,11 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplets, Calculator, Info, Ruler, Sun, Loader2, CloudRain, Thermometer, Wind } from "lucide-react";
+import { Droplets, Calculator, Ruler, Sun, Loader2, CloudRain, Thermometer, Wind } from "lucide-react";
 import { useStore } from "../store/useStore";
 import { useWaterStats } from "../hooks/useWaterStats";
 import { PLANT_FACTOR, IRRIGATION_EFFICIENCY, CONVERSION_FACTOR } from "../lib/waterMath";
 
 export function HouseholdDashboard() {
-  const { location } = useStore();
   const lawnAreaSqFt = useStore(state => state.lawnAreaSqFt) || 1250;
   
   const { stats, loading } = useWaterStats();
