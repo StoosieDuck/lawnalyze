@@ -135,6 +135,7 @@ export function PropertySetup() {
                     />
                     {boundaryGeoJSON && (
                       <GeoJSON 
+                        key={JSON.stringify(boundaryGeoJSON)}
                         data={boundaryGeoJSON}
                         style={{ color: '#0b5cff', weight: 4, fillColor: '#0b5cff', fillOpacity: 0.2 }}
                       />

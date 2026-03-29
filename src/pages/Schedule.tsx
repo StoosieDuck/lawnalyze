@@ -241,12 +241,10 @@ export function Schedule() {
                 <div className="bg-surface rounded-2xl p-4 border border-surface-variant/40">
                   <h4 className="font-bold text-error text-sm uppercase tracking-wide mb-1">Night Fungal Risk</h4>
                   <p className="text-sm font-medium">Leaving grass blades wet overnight significantly increases fungal growth and lawn diseases like Dollar Spot and Brown Patch.</p>
-                  <a href="https://extension.psu.edu/watering-lawns" target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold text-primary/60 hover:text-primary underline mt-1 inline-block">Penn State Extension →</a>
                 </div>
                 <div className="bg-surface rounded-2xl p-4 border border-surface-variant/40">
                   <h4 className="font-bold text-orange-500 text-sm uppercase tracking-wide mb-1">Mid-day Evaporation</h4>
                   <p className="text-sm font-medium">Irrigating at noon loses up to 30% of total volume instantly to the sun.</p>
-                  <a href="https://hgic.clemson.edu/factsheet/watering-lawns/" target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold text-primary/60 hover:text-primary underline mt-1 inline-block">Clemson HGIC →</a>
                 </div>
               </div>
             </CardContent>
